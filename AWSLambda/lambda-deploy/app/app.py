@@ -9,8 +9,13 @@ import pytesseract
 import pdf2image
 import cv2
 from PIL import Image
+import boto3
+import uuid
+
 
 def handler(event, context):
+
+    QuinovicId = "ID12345"
 
     request_body = event
     
@@ -80,13 +85,26 @@ def handler(event, context):
             #extracted text from the specified region
             extractedText = pytesseract.image_to_string(Image.open(filename), lang='eng')
             print(extractedText)
-            extractedFileDate[lblName] = extractedText #Let the extracted next into the dict
+            extractedFileData[lblName] = extractedText #Let the extracted next into the dict
             #Take all the data extracted from a single invoice and insert it as a record to allExtractedInvoiceData array
-        allExtractedInvoiceData.append(extractedFileDate)
+        #Write to DB
+        invoiceID = str(uuid.uuid1())
+        client = boto3.resource('dynamodb')
+        table = client.Table('WISPMasterDataTable')  
+        input = {'invoiceID':invoiceID , 'TotalDue':extractedFileData['TotalDue'],'WastewaterFixedCharge':extractedFileData['WastewaterFixedCharge'],'PropertyAddress':extractedFileData['PropertyAddress'],'AccountNumber':extractedFileData['AccountNumber'],'DueDate':extractedFileData['DueDate'], 'QuinovicID':QuinovicId}      
+        print('IIINPUT! ' + input)
+        allExtractedInvoiceData.append(extractedFileData)
 
     #Outside of all the loops
     #sets the output to extracted data array
     output = allExtractedInvoiceData
+ 
+ 
+TotalDue
+WastewaterFixedCharge
+PropertyAddress
+AccountNumber
+DueDate
 
 
     body = {

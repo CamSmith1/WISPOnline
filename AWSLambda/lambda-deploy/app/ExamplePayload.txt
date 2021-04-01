@@ -38,7 +38,7 @@
   "pdffiles": {
     "files": [
       {
-      "Base64": "asdsadad"
+      "base64": "asdsadad"
       }
     ]
   }
