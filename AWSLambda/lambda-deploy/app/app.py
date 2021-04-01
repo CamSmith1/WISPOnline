@@ -23,10 +23,12 @@ def handler(event, context):
     pdfFilesArray = request_body['pdffiles']
     labelsArray = template['labels']
 
+    
+
 
     allExtractedInvoiceData = [] #Array to store all the extracted data from all invoices
     counter = 0 #Used for naming image files
-
+    print('UPDATED FUNCTION')
     #Loop over each base64 format file and perform OCR
     #When the pdf is converted correctly to image format do stuff
     for file in pdfFilesArray['files']:
@@ -64,7 +66,7 @@ def handler(event, context):
     images = glob.glob("/tmp/*.jpg") #Get a collection of all files in the temp folder
     for img in images:
        
-        extractedFileDate = {} #A dict that will store all the data extracted from 1 file
+        extractedFileData = {} #A dict that will store all the data extracted from 1 file
             
         invoice = cv2.imread(img)
         invoice = cv2.resize(invoice, (1653,2339), interpolation=cv2.INTER_AREA)
@@ -92,20 +94,18 @@ def handler(event, context):
         client = boto3.resource('dynamodb')
         table = client.Table('WISPMasterDataTable')  
         input = {'invoiceID':invoiceID , 'TotalDue':extractedFileData['TotalDue'],'WastewaterFixedCharge':extractedFileData['WastewaterFixedCharge'],'PropertyAddress':extractedFileData['PropertyAddress'],'AccountNumber':extractedFileData['AccountNumber'],'DueDate':extractedFileData['DueDate'], 'QuinovicID':QuinovicId}      
-        print('IIINPUT! ' + input)
+        table.put_item(Item=input)
         allExtractedInvoiceData.append(extractedFileData)
 
     #Outside of all the loops
     #sets the output to extracted data array
     output = allExtractedInvoiceData
- 
- 
-TotalDue
-WastewaterFixedCharge
-PropertyAddress
-AccountNumber
-DueDate
 
+    #Delete all files in the temp dir
+    files = glob.glob('/tmp/')
+    for f in files:
+        os.remove(f)
+ 
 
     body = {
         "text": output

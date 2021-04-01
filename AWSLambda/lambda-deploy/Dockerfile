@@ -15,7 +15,8 @@ RUN mkdir ${FUNCTION_DIR}
 COPY app/* ${FUNCTION_DIR}
 
 RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --upgrade awslambdaric Pillow pytesseract pdf2image opencv-python --target ${FUNCTION_DIR}
+RUN python3 -m pip install --upgrade awslambdaric Pillow pytesseract pdf2image opencv-python boto3 --target ${FUNCTION_DIR}
+
 
 WORKDIR ${FUNCTION_DIR}
 
