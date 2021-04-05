@@ -35,7 +35,8 @@ const handleFileUpload = (event) => {
       reader.readAsDataURL(item);
       reader.onload = function () {
         //Successfully converted the pdf to b64
-         let b64PDFObj = {base64: reader.result};
+         let b64PDFObj = {base64: reader.result.split(',')[1]};
+          
         resolve(b64PDFObj)
       };
     });
@@ -52,6 +53,7 @@ async function handleSubmit(files){
     var jsonBody = buildocrPayload(arr);
    // console.log('Attempting first api');
  // console.log('Stufff '+ jsonBody)
+ 
     queryOCRLambda(jsonBody)
 }
 
@@ -117,6 +119,7 @@ async function handleSubmit(files){
 
 //This function queries the aws api gate way to invoke the Lambda function
 async function queryOCRLambda(JSONBody) {
+ 
   // POST request using axios with async/await
   console.log('STARTING queryOCRLambda')
   //const apiKey = "JBGWI8rKz330EznOqbfT39UmolMIcPD5tBiPVh77";
@@ -129,7 +132,7 @@ async function queryOCRLambda(JSONBody) {
       "Access-Control-Allow-Headers" : "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
      
     }
-  }).then((resp) => {console.log('RESPONSE FROM API '+ resp)})
+  }).then((resp) => {console.log('RESPONSE FROM API '+ JSON.stringify(resp))})
   .catch((error) => {
     console.error(error);
   });
