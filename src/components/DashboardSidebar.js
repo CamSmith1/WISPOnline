@@ -26,11 +26,11 @@ const items = [
     icon: BarChartIcon,
     title: 'Dashboard'
   },
-  {
+ /* {
     href: '/app/upload',
     icon: UsersIcon,
     title: 'Upload Invoices'
-  },
+  },*/
   {
     href: '/app/processBatch',
     icon: ShoppingBagIcon,

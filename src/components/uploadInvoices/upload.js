@@ -7,7 +7,7 @@ import axios from "axios";
     
     <Button color="primary" variant="contained" component="label">
       Upload Invoices
-    <input type="file" hidden multiple onChange={handleFileUpload}/>
+    <input type="file" hidden multiple accept="application/pdf" onChange={handleFileUpload}/>
     </Button> 
   );
 

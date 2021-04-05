@@ -53,7 +53,7 @@ def handler(event, context):
             print('/tmp/' +str(counter) + '.jpg')
             #This is really bad but using counter to create unique names TODO handle multi page pdf
             counter += 1
-            #This will only extract the first page of the invoice TODO work with multipage pdfs
+            #Break after retrieving the first page of the pdf
             break
 
 
@@ -88,6 +88,7 @@ def handler(event, context):
             extractedText = pytesseract.image_to_string(Image.open(filename), lang='eng')
             print(extractedText)
             extractedFileData[lblName] = extractedText #Let the extracted next into the dict
+            os.remove(filename)#Delete the temp file
             #Take all the data extracted from a single invoice and insert it as a record to allExtractedInvoiceData array
         #Write to DB
         invoiceID = str(uuid.uuid1())
@@ -96,16 +97,11 @@ def handler(event, context):
         input = {'invoiceID':invoiceID , 'TotalDue':extractedFileData['TotalDue'],'WastewaterFixedCharge':extractedFileData['WastewaterFixedCharge'],'PropertyAddress':extractedFileData['PropertyAddress'],'AccountNumber':extractedFileData['AccountNumber'],'DueDate':extractedFileData['DueDate'], 'QuinovicID':QuinovicId}      
         table.put_item(Item=input)
         allExtractedInvoiceData.append(extractedFileData)
-
+        
     #Outside of all the loops
     #sets the output to extracted data array
     output = allExtractedInvoiceData
 
-    #Delete all files in the temp dir
-    files = glob.glob('/tmp/')
-    for f in files:
-        os.remove(f)
- 
 
     body = {
         "text": output
