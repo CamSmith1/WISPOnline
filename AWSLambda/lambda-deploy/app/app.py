@@ -15,13 +15,19 @@ import uuid
 
 def handler(event, context):
 
-    QuinovicId = "ID12345"
+    
 
     request_body = event
     
     template = request_body['template']
     pdfFilesArray = request_body['pdffiles']
     labelsArray = template['labels']
+
+    #QuinovicId = "ID12345"
+    client = boto3.resource('dynamodb')
+    QuinovicId = str(request_body['QuinovicID'])
+    TransactionTbl = QuinovicId + 'TransactionData' #TODO When user is created create the transacitonTable
+    table = client.Table(TransactionTbl) 
 
     
 
@@ -64,10 +70,8 @@ def handler(event, context):
 
     #Code below iterates over all the invoices that have been converted to jpg and dumps into tempFolderName directory
     images = glob.glob("/tmp/*.jpg") #Get a collection of all files in the temp folder
-    for img in images:
-       
-        extractedFileData = {} #A dict that will store all the data extracted from 1 file
-            
+    for img in images: 
+        extractedFileData = {} #A dict that will store all the data extracted from 1 file        
         invoice = cv2.imread(img)
         invoice = cv2.resize(invoice, (1653,2339), interpolation=cv2.INTER_AREA)
 
@@ -90,10 +94,8 @@ def handler(event, context):
             extractedFileData[lblName] = extractedText #Let the extracted next into the dict
             os.remove(filename)#Delete the temp file
             #Take all the data extracted from a single invoice and insert it as a record to allExtractedInvoiceData array
-        #Write to DB
+
         invoiceID = str(uuid.uuid1())
-        client = boto3.resource('dynamodb')
-        table = client.Table('WISPMasterDataTable')  
         input = {'invoiceID':invoiceID , 'TotalDue':extractedFileData['TotalDue'],'WastewaterFixedCharge':extractedFileData['WastewaterFixedCharge'],'PropertyAddress':extractedFileData['PropertyAddress'],'AccountNumber':extractedFileData['AccountNumber'],'DueDate':extractedFileData['DueDate'], 'QuinovicID':QuinovicId}      
         table.put_item(Item=input)
         allExtractedInvoiceData.append(extractedFileData)
@@ -109,7 +111,7 @@ def handler(event, context):
 
     response = {
         "statusCode": 200,
-        "body": json.dumps(body)
+        "body": body
     }
 
     return response

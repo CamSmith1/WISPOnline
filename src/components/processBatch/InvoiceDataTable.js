@@ -6,10 +6,12 @@ import axios from "axios";
 
 
 const columns = [
-  { field: 'id', headerName: 'TransactionID', width: 200 },
-  { field: 'DateProcessed', headerName: 'Date Processed', width: 200 },
+  { field: 'PropertyAddress', headerName: 'Property Address', width: 200 },
+  { field: 'WastewaterFixedCharge', headerName: 'Wastewater Fixed Charge', width: 200 },
+  { field: 'TotalDue', headerName: 'Total Due', width: 200 },
+  { field: 'AccountNumber', headerName: 'Account Number', width: 200 },
   { field: 'TransactionStatus', headerName: 'Transaction Status', width: 200 },
-  {field: 'BatchTotal', headerName: 'Batch Total', type: 'number', width: 200},
+ 
 
 ];
 
@@ -21,11 +23,17 @@ const rows = [
 
 
 const handleFileUpload = (event) => {
-    
+  let QuinovicID = 'ID12345'; 
   let files = event.target.files;
   console.log(JSON.stringify(files));
-  handleSubmit(files); //Used to upload files to lambda
+  handleSubmit(files, QuinovicID); //Used to upload files to lambda
 };
+
+const handleReload = () =>{
+  let QuinovicID = 'ID12345'; 
+  let JSONBody = buildGetTransactionDataPayload(QuinovicID);
+  getTransactionData(JSONBody);
+}
 
   //Promise function to read files with file reader
   function readFiletoB64(item)
@@ -43,26 +51,23 @@ const handleFileUpload = (event) => {
   };
 
 
-async function handleSubmit(files){
+async function handleSubmit(files, QuinovicID){
     let arr = [];
     for(var i = 0; i < files.length; i++){
        let fileData = await readFiletoB64(files[i]); //Base64 data of the file
       arr.push(fileData)
-    }
-    
-    var jsonBody = buildocrPayload(arr);
-   // console.log('Attempting first api');
- // console.log('Stufff '+ jsonBody)
- 
+    } 
+    var jsonBody = buildocrPayload(arr, QuinovicID);
     queryOCRLambda(jsonBody)
 }
 
 
 
   //Builds a JSON structure for the payload to send to Lambda for OCR
-  function buildocrPayload (filesArr) {
+  function buildocrPayload (filesArr, QuinovicID) {
     let labels = getLabels();
     var JSONBody = {
+      "QuinovicID": QuinovicID,
       "template":{
         "labels": labels
       },
@@ -70,10 +75,17 @@ async function handleSubmit(files){
         "files": filesArr
       }
     };
-  //console.log('payload: ' +JSON.stringify(JSONBody))
     return JSONBody;
-
   }
+
+    //Builds JSON payload for getting transactionData
+    function buildGetTransactionDataPayload (QuinovicID) {
+      var JSONBody = {
+        "QuinovicID": QuinovicID,
+        "GetType": "TransactionData"
+      };
+      return JSONBody;
+    }
 
   //Below is the template field mappings for a standard watercare bill
   function getLabels(){
@@ -121,9 +133,7 @@ async function handleSubmit(files){
 async function queryOCRLambda(JSONBody) {
  
   // POST request using axios with async/await
-  console.log('STARTING queryOCRLambda')
-  //const apiKey = "JBGWI8rKz330EznOqbfT39UmolMIcPD5tBiPVh77";
-  
+  console.log('STARTING queryOCRLambda') 
   const response = await axios.post('https://w5mkt2xqgf.execute-api.us-east-1.amazonaws.com/prod', JSONBody, {
     headers: {
       "Content-Type" : "application/json",
@@ -136,23 +146,40 @@ async function queryOCRLambda(JSONBody) {
   .catch((error) => {
     console.error(error);
   });
-  //this.setState({ articleId: response.data.id });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//Get data from DynamoDB
+async function getTransactionData(JSONBody) {
+ 
+  // POST request using axios with async/await
+  const response = await axios.post('https://5xwj12ymf7.execute-api.us-east-1.amazonaws.com/prod', JSONBody, {
+    headers: {
+      "Content-Type" : "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST",
+      "Access-Control-Allow-Headers" : "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
+     
+    }
+  }).then((resp) => {
+    //console.log('RESPONSE FROM API '+ JSON.stringify(resp.data.body))
+    var invoiceArr = resp.data.body["Data"]
+    invoiceArr.forEach((invoice) => {
+      var row = {
+        "PropertyAddress": invoice["PropertyAddress"],
+        "WastewaterFixedCharge": invoice["WastewaterFixedCharge"],
+        "TotalDue": invoice["TotalDue"],
+        "AccountNumber": invoice["AccountNumber"],
+        "TransactionStatus": "NOT POSTED"  
+      };
+      rows.push(row);
+      console.log('Added Row');
+    })
+  
+  })
+  .catch((error) => {
+    console.error(error);
+  });
+}
 
 
 
@@ -163,7 +190,7 @@ export default function DataTable() {
   return (
     <div style={{ height: '50%', width: '100%' }}>
       <DataGrid rows={rows} columns={columns} checkboxSelection  />
-      <Button color="primary" variant="contained" component="label">
+      <Button color="primary" variant="contained" component="label" onClick={handleReload}>
       Reload
     </Button> 
     <Button color="primary" variant="contained" component="label">

@@ -17,7 +17,6 @@ const App = () => {
     </ThemeProvider>
   );
 };
-var cors = require('cors')
 
 
 export default App;
