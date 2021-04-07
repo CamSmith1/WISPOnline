@@ -2,7 +2,8 @@ import * as React from 'react';
 import { DataGrid } from '@material-ui/data-grid';
 import { Button } from "@material-ui/core";
 import axios from "axios";
-
+import  { useState } from 'react';
+import { render } from 'nprogress';
 
 
 const columns = [
@@ -15,13 +16,22 @@ const columns = [
 
 ];
 
-const rows = [
-
-  //{ id: 1, DateProcessed: '31/03/21', TransactionStatus: 'POSTED', BatchTotal: 500 },
-
-];
+;const rows = [];
 
 
+
+
+
+
+
+
+
+export default function DataTable() {
+  const [rowsArr, setRowsArr] = useState([]);
+
+
+
+  
 const handleFileUpload = (event) => {
   let QuinovicID = 'ID12345'; 
   let files = event.target.files;
@@ -163,17 +173,24 @@ async function getTransactionData(JSONBody) {
   }).then((resp) => {
     //console.log('RESPONSE FROM API '+ JSON.stringify(resp.data.body))
     var invoiceArr = resp.data.body["Data"]
+    var invoiceRows = [];
+    var x = 1;
     invoiceArr.forEach((invoice) => {
       var row = {
+        "id":x,
         "PropertyAddress": invoice["PropertyAddress"],
         "WastewaterFixedCharge": invoice["WastewaterFixedCharge"],
         "TotalDue": invoice["TotalDue"],
         "AccountNumber": invoice["AccountNumber"],
         "TransactionStatus": "NOT POSTED"  
       };
-      rows.push(row);
-      console.log('Added Row');
+      invoiceRows.push(row);
+      x++;
+      console.log('Added Row ' + row);
     })
+    setRowsArr(invoiceRows);
+    console.log('Value of rows '+ rowsArr);
+    handleReload();
   
   })
   .catch((error) => {
@@ -186,10 +203,42 @@ async function getTransactionData(JSONBody) {
 
 
 
-export default function DataTable() {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+ render();
   return (
     <div style={{ height: '50%', width: '100%' }}>
-      <DataGrid rows={rows} columns={columns} checkboxSelection  />
+      <DataGrid rows={rowsArr} columns={columns} checkboxSelection  />
       <Button color="primary" variant="contained" component="label" onClick={handleReload}>
       Reload
     </Button> 
@@ -201,6 +250,6 @@ export default function DataTable() {
       Process
     </Button>
     </div>
-    
+   
   );
 }
