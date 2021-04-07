@@ -35,11 +35,12 @@ export default function DataTable() {
 const handleFileUpload = (event) => {
   let QuinovicID = 'ID12345'; 
   let files = event.target.files;
-  console.log(JSON.stringify(files));
+  //console.log(JSON.stringify(files));
   handleSubmit(files, QuinovicID); //Used to upload files to lambda
+  
 };
 
-const handleReload = () =>{
+const handleReload = (event) =>{
   let QuinovicID = 'ID12345'; 
   let JSONBody = buildGetTransactionDataPayload(QuinovicID);
   getTransactionData(JSONBody);
@@ -152,7 +153,11 @@ async function queryOCRLambda(JSONBody) {
       "Access-Control-Allow-Headers" : "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
      
     }
-  }).then((resp) => {console.log('RESPONSE FROM API '+ JSON.stringify(resp))})
+  }).then((resp) => {
+    //console.log('RESPONSE FROM API '+ JSON.stringify(resp))
+    console.log('Successfully uploaded file');
+    handleReload();
+  })
   .catch((error) => {
     console.error(error);
   });
@@ -162,6 +167,7 @@ async function queryOCRLambda(JSONBody) {
 async function getTransactionData(JSONBody) {
  
   // POST request using axios with async/await
+  console.log('MAKING POST!');
   const response = await axios.post('https://5xwj12ymf7.execute-api.us-east-1.amazonaws.com/prod', JSONBody, {
     headers: {
       "Content-Type" : "application/json",
@@ -171,7 +177,6 @@ async function getTransactionData(JSONBody) {
      
     }
   }).then((resp) => {
-    //console.log('RESPONSE FROM API '+ JSON.stringify(resp.data.body))
     var invoiceArr = resp.data.body["Data"]
     var invoiceRows = [];
     var x = 1;
@@ -190,7 +195,7 @@ async function getTransactionData(JSONBody) {
     })
     setRowsArr(invoiceRows);
     console.log('Value of rows '+ rowsArr);
-    handleReload();
+    console.log(rowsArr.length)
   
   })
   .catch((error) => {
