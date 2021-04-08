@@ -4,6 +4,7 @@ import { Button } from "@material-ui/core";
 import axios from "axios";
 import  { useState } from 'react';
 import { render } from 'nprogress';
+import Loader from 'react-loader-spinner';
 
 
 const columns = [
@@ -16,7 +17,6 @@ const columns = [
 
 ];
 
-;const rows = [];
 
 
 
@@ -28,6 +28,8 @@ const columns = [
 
 export default function DataTable() {
   const [rowsArr, setRowsArr] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  //let isLoading = true;
 
 
 
@@ -142,7 +144,7 @@ async function handleSubmit(files, QuinovicID){
 
 //This function queries the aws api gate way to invoke the Lambda function
 async function queryOCRLambda(JSONBody) {
- 
+  setIsLoading(true)
   // POST request using axios with async/await
   console.log('STARTING queryOCRLambda') 
   const response = await axios.post('https://w5mkt2xqgf.execute-api.us-east-1.amazonaws.com/prod', JSONBody, {
@@ -156,15 +158,22 @@ async function queryOCRLambda(JSONBody) {
   }).then((resp) => {
     //console.log('RESPONSE FROM API '+ JSON.stringify(resp))
     console.log('Successfully uploaded file');
+    setIsLoading(false)
+
     handleReload();
   })
   .catch((error) => {
     console.error(error);
+    setIsLoading(false)
+    handleReload();
+
+
   });
 }
 
 //Get data from DynamoDB
 async function getTransactionData(JSONBody) {
+  setIsLoading(true)
  
   // POST request using axios with async/await
   console.log('MAKING POST!');
@@ -195,6 +204,7 @@ async function getTransactionData(JSONBody) {
     })
     setRowsArr(invoiceRows);
     console.log('Value of rows '+ rowsArr);
+    setIsLoading(false)
     console.log(rowsArr.length)
   
   })
@@ -203,44 +213,6 @@ async function getTransactionData(JSONBody) {
   });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
- render();
   return (
     <div style={{ height: '50%', width: '100%' }}>
       <DataGrid rows={rowsArr} columns={columns} checkboxSelection  />
@@ -254,6 +226,7 @@ async function getTransactionData(JSONBody) {
     <Button color="primary" variant="contained" component="label">
       Process
     </Button>
+    {isLoading && <Loader type="Circles" color="#00BFFF" height={80} width={80}/>}
     </div>
    
   );
