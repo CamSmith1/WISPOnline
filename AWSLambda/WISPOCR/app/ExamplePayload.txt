@@ -1,0 +1,45 @@
+{
+  "template": {
+    "labels": [
+      {
+        "id": "0",
+        "label": "Total",
+        "height": "74",
+        "width": "288",
+        "x": "1247",
+        "y": "936"
+      },
+      {
+        "id": "1",
+        "label": "Description",
+        "height": "81",
+        "width": "1135",
+        "x": "117",
+        "y": "934"
+      },
+      {
+        "id": "2",
+        "label": "InvoiceName",
+        "height": "49",
+        "width": "231",
+        "x": "104",
+        "y": "674"
+      },
+      {
+        "id": "3",
+        "label": "Credit",
+        "height": "52",
+        "width": "292",
+        "x": "1247",
+        "y": "1058"
+      }
+    ]
+  },
+  "pdffiles": {
+    "files": [
+      {
+      "base64": "asdsadad"
+      }
+    ]
+  }
+}
